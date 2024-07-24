@@ -1,9 +1,8 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Team Randomizer</title>
 <style>
     .player-input {
@@ -29,14 +28,20 @@
     }
 </style>
 <script>
+document.addEventListener("DOMContentLoaded", function() {
+    loadSavedNames();
+});
+
 function saveName() {
-    let playerName = document.getElementById("newPlayer").value;
+    let playerName = document.getElementById("newPlayer").value.trim();
     if (playerName) {
         let storedNames = JSON.parse(localStorage.getItem("playerNames")) || [];
-        storedNames.push(playerName);
-        localStorage.setItem("playerNames", JSON.stringify(storedNames));
-        document.getElementById("newPlayer").value = "";
-        loadSavedNames();
+        if (!storedNames.includes(playerName)) {
+            storedNames.push(playerName);
+            localStorage.setItem("playerNames", JSON.stringify(storedNames));
+            document.getElementById("newPlayer").value = "";
+            loadSavedNames();
+        }
     }
 }
 
@@ -97,31 +102,51 @@ function handleKeyPress(event) {
         event.preventDefault();
     }
 }
-
-window.onload = loadSavedNames;
 </script>
 </head>
 <body>
     <h1>Enter 10 Player Names</h1>
-    <form action="result.jsp" method="post">
-        <% for (int i = 1; i <= 10; i++) { %>
-            <div class="player-input">
-                <label for="player<%= i %>">Player <%= i %>:</label>
-                <input type="text" id="player<%= i %>" name="players" required>
-                <select id="team<%= i %>" name="teams" class="team-select" required>
-                    <option value="0">Random</option>
-                    <option value="1">Team 1</option>
-                    <option value="2">Team 2</option>
-                </select>
-            </div>
-        <% } %>
-        <input type="submit" value="Randomize Teams">
+    <form id="playerForm">
+        <!-- Player input fields -->
+        <div id="playerInputsContainer">
+            <!-- Inputs will be dynamically inserted here -->
+        </div>
+        <input type="button" value="Randomize Teams" onclick="randomizeTeams()">
     </form>
     <h2>Save a New Player Name</h2>
     <input type="text" id="newPlayer" placeholder="Enter player name" onkeypress="handleKeyPress(event)">
-    <button type="button" onclick="saveName()">플레이어 저장</button>
+    <button type="button" onclick="saveName()">Save Player</button>
     <h2>Saved Player Names</h2>
-    <button type="button" onclick="addAllPlayers()">전체 추가</button>
+    <button type="button" onclick="addAllPlayers()">Add All</button>
     <ul id="savedNamesList"></ul>
+
+    <script>
+    // Initialize player input fields
+    const playerInputsContainer = document.getElementById('playerInputsContainer');
+    for (let i = 1; i <= 10; i++) {
+        const div = document.createElement('div');
+        div.className = 'player-input';
+        div.innerHTML = `
+            <label for="player${i}">Player ${i}:</label>
+            <input type="text" id="player${i}" name="players" required>
+            <select id="team${i}" name="teams" class="team-select" required>
+                <option value="0">Random</option>
+                <option value="1">Team 1</option>
+                <option value="2">Team 2</option>
+            </select>
+        `;
+        playerInputsContainer.appendChild(div);
+    }
+
+    function randomizeTeams() {
+        // Code to submit form data and handle team randomization goes here
+        // For demonstration, we just log form values
+        let players = Array.from(document.querySelectorAll('input[name="players"]')).map(input => input.value);
+        let teams = Array.from(document.querySelectorAll('select[name="teams"]')).map(select => select.value);
+        console.log('Players:', players);
+        console.log('Teams:', teams);
+        // In a real application, you would typically send this data to a server
+    }
+    </script>
 </body>
 </html>
