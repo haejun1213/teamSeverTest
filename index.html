@@ -1,109 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Team Randomizer</title>
-<style>
-    .player-input {
-        display: flex;
-        align-items: center;
-        margin-bottom: 8px;
-    }
-    .player-input label {
-        width: 100px;
-        text-align: right;
-        margin-right: 8px;
-    }
-    .team-select {
-        margin-left: 10px;
-    }
-    #savedNamesList li {
-        display: flex;
-        align-items: center;
-        margin-bottom: 8px;
-    }
-    #savedNamesList button {
-        margin-left: 8px;
-    }
-</style>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    loadSavedNames();
-});
-
-function saveName() {
-    let playerName = document.getElementById("newPlayer").value.trim();
-    if (playerName) {
-        let storedNames = JSON.parse(localStorage.getItem("playerNames")) || [];
-        if (!storedNames.includes(playerName)) {
-            storedNames.push(playerName);
-            localStorage.setItem("playerNames", JSON.stringify(storedNames));
-            document.getElementById("newPlayer").value = "";
-            loadSavedNames();
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Randomizer</title>
+    <style>
+        .player-input {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
         }
-    }
-}
 
-function loadSavedNames() {
-    let storedNames = JSON.parse(localStorage.getItem("playerNames")) || [];
-    let savedNamesList = document.getElementById("savedNamesList");
-    savedNamesList.innerHTML = "";
-    storedNames.forEach((name, index) => {
-        let listItem = document.createElement("li");
-        listItem.textContent = name;
+        .player-input label {
+            width: 100px;
+            text-align: right;
+            margin-right: 8px;
+        }
 
-        let deleteButton = document.createElement("button");
-        deleteButton.textContent = "Delete";
-        deleteButton.onclick = () => {
-            storedNames.splice(index, 1);
-            localStorage.setItem("playerNames", JSON.stringify(storedNames));
+        .team-select {
+            margin-left: 10px;
+        }
+
+        #savedNamesList li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        #savedNamesList button {
+            margin-left: 8px;
+        }
+
+        .team-output {
+            margin-top: 20px;
+        }
+
+        .team-output h2 {
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
             loadSavedNames();
-        };
+        });
 
-        let addButton = document.createElement("button");
-        addButton.textContent = "Add";
-        addButton.onclick = () => {
+        function saveName() {
+            let playerName = document.getElementById("newPlayer").value.trim();
+            if (playerName) {
+                let storedNames = JSON.parse(localStorage.getItem("playerNames")) || [];
+                if (!storedNames.includes(playerName)) {
+                    storedNames.push(playerName);
+                    localStorage.setItem("playerNames", JSON.stringify(storedNames));
+                    document.getElementById("newPlayer").value = "";
+                    loadSavedNames();
+                }
+            }
+        }
+
+        function loadSavedNames() {
+            let storedNames = JSON.parse(localStorage.getItem("playerNames")) || [];
+            let savedNamesList = document.getElementById("savedNamesList");
+            savedNamesList.innerHTML = "";
+            storedNames.forEach((name, index) => {
+                let listItem = document.createElement("li");
+                listItem.textContent = name;
+
+                let deleteButton = document.createElement("button");
+                deleteButton.textContent = "Delete";
+                deleteButton.onclick = () => {
+                    storedNames.splice(index, 1);
+                    localStorage.setItem("playerNames", JSON.stringify(storedNames));
+                    loadSavedNames();
+                };
+
+                let addButton = document.createElement("button");
+                addButton.textContent = "Add";
+                addButton.onclick = () => {
+                    let playerInputs = document.querySelectorAll('input[name="players"]');
+                    for (let input of playerInputs) {
+                        if (!input.value) {
+                            input.value = name;
+                            break;
+                        }
+                    }
+                };
+
+                listItem.appendChild(addButton);
+                listItem.appendChild(deleteButton);
+                savedNamesList.appendChild(listItem);
+            });
+        }
+
+        function addAllPlayers() {
+            let storedNames = JSON.parse(localStorage.getItem("playerNames")) || [];
             let playerInputs = document.querySelectorAll('input[name="players"]');
-            for (let input of playerInputs) {
-                if (!input.value) {
-                    input.value = name;
+            let inputIndex = 0;
+
+            for (let name of storedNames) {
+                while (inputIndex < playerInputs.length && playerInputs[inputIndex].value) {
+                    inputIndex++;
+                }
+                if (inputIndex < playerInputs.length) {
+                    playerInputs[inputIndex].value = name;
+                } else {
                     break;
                 }
             }
-        };
-
-        listItem.appendChild(addButton);
-        listItem.appendChild(deleteButton);
-        savedNamesList.appendChild(listItem);
-    });
-}
-
-function addAllPlayers() {
-    let storedNames = JSON.parse(localStorage.getItem("playerNames")) || [];
-    let playerInputs = document.querySelectorAll('input[name="players"]');
-    let inputIndex = 0;
-
-    for (let name of storedNames) {
-        while (inputIndex < playerInputs.length && playerInputs[inputIndex].value) {
-            inputIndex++;
         }
-        if (inputIndex < playerInputs.length) {
-            playerInputs[inputIndex].value = name;
-        } else {
-            break;
-        }
-    }
-}
 
-function handleKeyPress(event) {
-    if (event.key === 'Enter') {
-        saveName();
-        event.preventDefault();
-    }
-}
-</script>
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                saveName();
+                event.preventDefault();
+            }
+        }
+
+        function randomizeTeams() {
+            let playerInputs = Array.from(document.querySelectorAll('input[name="players"]'));
+            let teamSelectors = Array.from(document.querySelectorAll('select[name="teams"]'));
+            let players = playerInputs.map(input => input.value.trim());
+            let teams = teamSelectors.map(select => select.value);
+
+            let team1 = [];
+            let team2 = [];
+            let unassignedPlayers = [];
+
+            players.forEach((player, index) => {
+                let team = teams[index];
+                if (team === "1") {
+                    team1.push(player);
+                } else if (team === "2") {
+                    team2.push(player);
+                } else {
+                    unassignedPlayers.push(player);
+                }
+            });
+
+            // Randomly assign unassigned players
+            unassignedPlayers = unassignedPlayers.sort(() => 0.5 - Math.random());
+            let half = Math.ceil(unassignedPlayers.length / 2);
+            team1 = team1.concat(unassignedPlayers.slice(0, half));
+            team2 = team2.concat(unassignedPlayers.slice(half));
+
+            displayTeams(team1, team2);
+        }
+
+        function displayTeams(team1, team2) {
+            let teamOutput = document.getElementById("teamOutput");
+            teamOutput.innerHTML = `
+        <div class="team-output">
+            <h2>Team 1</h2>
+            <ul>${team1.map(player => `<li>${player}</li>`).join('')}</ul>
+            <h2>Team 2</h2>
+            <ul>${team2.map(player => `<li>${player}</li>`).join('')}</ul>
+        </div>
+    `;
+        }
+    </script>
 </head>
+
 <body>
     <h1>Enter 10 Player Names</h1>
     <form id="playerForm">
@@ -120,13 +176,17 @@ function handleKeyPress(event) {
     <button type="button" onclick="addAllPlayers()">Add All</button>
     <ul id="savedNamesList"></ul>
 
+    <div id="teamOutput" class="team-output">
+        <!-- Teams will be displayed here -->
+    </div>
+
     <script>
-    // Initialize player input fields
-    const playerInputsContainer = document.getElementById('playerInputsContainer');
-    for (let i = 1; i <= 10; i++) {
-        const div = document.createElement('div');
-        div.className = 'player-input';
-        div.innerHTML = `
+        // Initialize player input fields
+        const playerInputsContainer = document.getElementById('playerInputsContainer');
+        for (let i = 1; i <= 10; i++) {
+            const div = document.createElement('div');
+            div.className = 'player-input';
+            div.innerHTML = `
             <label for="player${i}">Player ${i}:</label>
             <input type="text" id="player${i}" name="players" required>
             <select id="team${i}" name="teams" class="team-select" required>
@@ -135,18 +195,9 @@ function handleKeyPress(event) {
                 <option value="2">Team 2</option>
             </select>
         `;
-        playerInputsContainer.appendChild(div);
-    }
-
-    function randomizeTeams() {
-        // Code to submit form data and handle team randomization goes here
-        // For demonstration, we just log form values
-        let players = Array.from(document.querySelectorAll('input[name="players"]')).map(input => input.value);
-        let teams = Array.from(document.querySelectorAll('select[name="teams"]')).map(select => select.value);
-        console.log('Players:', players);
-        console.log('Teams:', teams);
-        // In a real application, you would typically send this data to a server
-    }
+            playerInputsContainer.appendChild(div);
+        }
     </script>
 </body>
+
 </html>
